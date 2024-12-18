@@ -104,7 +104,7 @@ def home() -> rx.Component:
                         rx.menu.item(
                             rx.icon('book-open'),
                             "About the project",
-                            on_click=lambda: rx.redirect('/account/user/profile'),
+                            on_click=lambda: rx.redirect('/home/about-project'),
                             style={ "font-family": "Console",
                                     "font-size": "20px",
                                     "font-weight": "normal",
@@ -114,7 +114,7 @@ def home() -> rx.Component:
                         rx.menu.item(
                             rx.icon('users'),
                             "About the developers",
-                            on_click=lambda: rx.redirect('/account/user/edit-profile'),
+                            on_click=lambda: rx.redirect('/home/about-team'),
                             style={ "font-family": "Console",
                                     "font-size": "20px",
                                     "font-weight": "normal",
@@ -126,7 +126,7 @@ def home() -> rx.Component:
                             rx.icon('video'),
                             "Presentation", 
                             
-                            #on_click=lambda:[ComponentState.change_to_original_status,ComponentState.change_menu],
+                            on_click=lambda:rx.redirect("https://www.youtube.com/",external=True),
                             style={ "font-family": "Console",
                                     "font-size": "20px",
                                     "font-weight": "normal",
@@ -188,7 +188,7 @@ def home() -> rx.Component:
                     
                 ),
                 rx.image(
-                    src="/home-resultados.png",  # Ruta de la imagen
+                    src="/phrase.png",  # Ruta de la imagen
                     alt="Descripción de la imagen",
                     width="100%",  # Ancho de la imagen
                     height="50vh",   # Altura ajustada automáticamente
@@ -216,7 +216,7 @@ def home() -> rx.Component:
                     
                 ),
                 rx.image(
-                    src="/home-caracteristicas.png",  # Ruta de la imagen
+                    src="/architecture.png",  # Ruta de la imagen
                     alt="Descripción de la imagen",
                     width="100%",  # Ancho de la imagen
                     height="50vh",   # Altura ajustada automáticamente

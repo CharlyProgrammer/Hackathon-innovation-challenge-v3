@@ -87,6 +87,16 @@ class processing():
         
         return documents
     
+    def process_articles(self,article):
+        article_data = []
+        art_metadata = {
+            "title": article["title"],
+            "highlight": article["highlight"],
+            "url": article["url"]
+         
+        }
+        article_data.append(Document(page_content=article["content"],metadata={**art_metadata}))
+        return article_data
     def split_docs(self,docs):
         splitter = RecursiveCharacterTextSplitter(chunk_size=500, chunk_overlap=50)
         chunks = splitter.split_documents(docs)

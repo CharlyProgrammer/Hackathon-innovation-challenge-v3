@@ -1,29 +1,15 @@
 import reflex as rx 
-#from app.database.connection import database
-
-class StateDashboard(rx.State):
-    status_button_1:bool=True
-    status_button_2:bool=True
-    status_button_3:bool=True
-    status_button_4:bool=True
-    status_button_5:bool=True
-    user:str=""
+class StateTeam(rx.State):
+   
     data_cards:list[list]=[
-        [1,"Tools for video analysis","/video.jpg","Description 1",status_button_1,'/account/user/autoeval-platform/generator'],
-        [2,"Tools for webpage analysis","/website_analyzer.jpg","Description 2",status_button_2,'/account/user/autoeval-platform/test-in-platform'],
-        [3,"Tools for image analysis","https://www.nunsys.com/wp-content/uploads/2021/07/shutterstock_230958076-759x500-1.jpg","Description 3",status_button_3,'/home/dashboard/image-analyzer'],
-        [4,"Chat with documents","/chatbot.jpg","Description 4",status_button_4,'/account/user/autoeval-platform/test-reports'],
-        
-        
-    ]
-    
-
-       
-   
-   
+            [1,"Carlos Maldonado","/video.jpg","[Member]"],
+            [2,"Charlie","/website_analyzer.jpg","[Member]"],
+            [3,"Mike","https://www.nunsys.com/wp-content/uploads/2021/07/shutterstock_230958076-759x500-1.jpg","[Member]"],
             
+            
+        ]
 
-def create_service(data_cards:list[tuple]):
+def create_cards(data_cards:list[tuple]):
         
         return rx.card(
             rx.center(
@@ -39,7 +25,7 @@ def create_service(data_cards:list[tuple]):
             rx.center(
                 rx.hstack(
                     
-                    rx.icon("school"),
+                    rx.icon("user"),
                     rx.heading(
                         data_cards[1],
                         font_family="Console",
@@ -69,16 +55,7 @@ def create_service(data_cards:list[tuple]):
                     text_align="justify",
                    
                 ),
-                rx.button(
-                    "Open",
-                    display=rx.cond(data_cards[4],'block','none'),
-                    on_click=lambda: rx.redirect(data_cards[5]),
-                    cursor="pointer",
-                    _hover={
-                        "color": "#FFD700"  # Cambia el color del texto al pasar el cursor
-                    }
-                    
-                ),
+               
                 direction="column",
                 spacing="1.5vh",
                 
@@ -92,13 +69,10 @@ def create_service(data_cards:list[tuple]):
                     "border": "4px solid #009929",  
             }
         )   
-        
-    
-
-def aplications_dashboard():
-     
+                
+def about_team():
      return rx.box(
-         rx.hstack(
+       rx.hstack(
             rx.hstack(
                 rx.image(
                     
@@ -200,100 +174,58 @@ def aplications_dashboard():
             max_height='100px',
             paddingX='12vw'
         ),
-        
-        rx.box(
-            
-            rx.flex(
+        rx.center(
+            rx.box(
+                rx.center(
                     rx.box(
                         
                         rx.heading(
-                            f"Dashboard of utilities",
+                            "THE DEVELOPERS",
                             align="center",
                             font_family="Console",
                             font_size="38px",
                             weight="bold",
-                            
-                            style={
-                                "text-shadow": "2px 2px 5px rgba(0, 0, 0, 0.5)"
-                            }
-                            
                         
                         ),
-                    style={
-                        "border-radius": "100px"
-                    },    
                     direction="column",
-                    height="100%",
-                    background_color="white",
-                    width="35%",
+                    height="10vh",
+                    background_color="#E3E4E5",
+                    width="90%",
                     paddingY='3vh',
-                    
-                    
+                    border_color="black",  # Color del borde
+                    border_width="2px",
                     
                     ),
-                    
-                    rx.hstack(
+                    rx.box(
                         
-                        rx.card(
-                            rx.center(
-                                rx.heading(
-                                    "WELCOME TO THE PROJECT",
-                                     font_family="Console",
-                                     font_size="21px",
-                                     weight="bold",
-                                    
-                                     
-                            
-                                ),
-                                rx.separator(
-                                    border_width="2px",  # Grosor del separador
-                                    border_color="#0cb7f2",  # Color del separador
-                                     # Margen alrededor del separador
-                                ),
-                                rx.text(
-                                   "XXXXXXXXX" 
-                                ),
-                                direction='column',
-                                spacing="1vh",
-                                style={
-                                     "border-radius": "100px",
-                                     
-                                }
-                                
-                            ),
-                                 
-                           
-                            width="20vw",
-                            height="50vh",
-                            style={
-                                     "border-radius": "50px",
-                            },
-                            background="#b5b5b5"
-                        ),
-                        rx.grid(
+                         rx.grid(
                             rx.foreach(
-                                StateDashboard.data_cards,
-                                create_service,
+                               StateTeam.data_cards,
+                               create_cards,
                             ),
                             columns="2",
                             spacing="8",
                             width="50vw",
                             paddingX="5vw",
                             overflow_x="auto",
-                        ),
-                        
-                   
-                        
+                        )
+                    
                     ),
                     
-                      
-                   
+                    
                     spacing='40px',
                     direction="column",
-                    padding='3vh'
-                ),
+                    paddingY='3vh'
+                ), 
+                
+                direction="column",
+                height="100%",
+                background_image="url('https://www.restoringthewells.org/wp-content/uploads/2016/02/dreamstime_m_53527973.jpg')",
+                width="80%",
             
-            background_image="url('https://150000629.v2.pressablecdn.com/wp-content/uploads/2021/01/learn--scaled.jpg')",
+            ),
+            
+            background_color="#bdbdbd",
             width="100%",
             height='100%'
             
@@ -301,6 +233,4 @@ def aplications_dashboard():
         
     height="100%",
     width="100%",
-    
-    
     )
