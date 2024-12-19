@@ -10,9 +10,9 @@ class StateDashboard(rx.State):
     user:str=""
     data_cards:list[list]=[
         [1,"Tools for video analysis","/video.jpg","Description 1",status_button_1,'/account/user/autoeval-platform/generator'],
-        [2,"Tools for webpage analysis","/website_analyzer.jpg","Description 2",status_button_2,'/account/user/autoeval-platform/test-in-platform'],
-        [3,"Tools for image analysis","https://www.nunsys.com/wp-content/uploads/2021/07/shutterstock_230958076-759x500-1.jpg","Description 3",status_button_3,'/home/dashboard/image-analyzer'],
-        [4,"Chat with documents","/chatbot.jpg","Description 4",status_button_4,'/account/user/autoeval-platform/test-reports'],
+        [2,"Tools for webpage analysis","/website_analyzer.jpg","Unlock a world of knowledge at your fingertips with the Web Analyzer. Dive into relevant content tailored to your interests—be it science, technology, or any field you desire. Select articles that inspire curiosity, explore them with our interactive chat tool, and ask questions to enrich your learning experience. Whether you're seeking insights, deepening your understanding, or exploring new frontiers, the Web Analyzer empowers you to interact with information in a more engaging and meaningful way. Start your journey of discovery today!",status_button_2,'/home/dashboard/web-analyzer'],
+        [3,"Tools for image analysis","/image_analyzer.jpg","Unlock a world of discovery in science, technology, and entertainment. The Image Analyzer lets you explore content-rich visuals with precision. Search for images across these themes, delve into their details, and ask AI-powered questions about each result. But it doesn’t stop there—generate insightful metadata, and create descriptive summaries with cutting-edge computer vision. Let your curiosity lead the way and redefine how you interact with images!",status_button_3,'/home/dashboard/image-analyzer'],
+        [4,"Chat with documents","/chatbot.jpg","Description 4",status_button_4,'/home/dashboard'],
         
         
     ]
@@ -75,7 +75,8 @@ def create_service(data_cards:list[tuple]):
                     on_click=lambda: rx.redirect(data_cards[5]),
                     cursor="pointer",
                     _hover={
-                        "color": "#FFD700"  # Cambia el color del texto al pasar el cursor
+                        "color": "#FFD700",  # Cambia el color del texto al pasar el cursor
+                       
                     }
                     
                 ),
@@ -207,7 +208,7 @@ def aplications_dashboard():
                     rx.box(
                         
                         rx.heading(
-                            f"Dashboard of utilities",
+                            f"Welcome to Your AI-Powered Interactive Dashboard!",
                             align="center",
                             font_family="Console",
                             font_size="38px",
@@ -225,7 +226,7 @@ def aplications_dashboard():
                     direction="column",
                     height="100%",
                     background_color="white",
-                    width="35%",
+                    width="50%",
                     paddingY='3vh',
                     
                     
@@ -237,7 +238,7 @@ def aplications_dashboard():
                         rx.card(
                             rx.center(
                                 rx.heading(
-                                    "WELCOME TO THE PROJECT",
+                                    "Why This Dashboard Stands Out?",
                                      font_family="Console",
                                      font_size="21px",
                                      weight="bold",
@@ -251,7 +252,14 @@ def aplications_dashboard():
                                      # Margen alrededor del separador
                                 ),
                                 rx.text(
-                                   "XXXXXXXXX" 
+                                   "Each card on the dashboard represents a powerful functionality that empowers you to extract insights, interact with content, and unlock the true potential of modern technology. Whether you're a researcher, enthusiast, or industry leader, this app delivers:",
+                                   paddingX="1vw",
+                                   style={'text-align': 'justify'} 
+                                ),
+                                rx.unordered_list(
+                                    rx.list_item(rx.text("Contextual Understanding:",weight="bold"),rx.text("Enhanced search precision by grasping user intent.")),
+                                    rx.list_item(rx.text("Seamless Integration:",weight="bold"),rx.text("Combining Natural Language Processing (NLP), Computer Vision, and more to provide intuitive interactions.")),
+                                    rx.list_item(rx.text("Personalization at Scale:",weight="bold"),rx.text("Tailored experiences that anticipate your needs."))
                                 ),
                                 direction='column',
                                 spacing="1vh",
@@ -277,7 +285,7 @@ def aplications_dashboard():
                             ),
                             columns="2",
                             spacing="8",
-                            width="50vw",
+                            width="60vw",
                             paddingX="5vw",
                             overflow_x="auto",
                         ),
@@ -293,7 +301,7 @@ def aplications_dashboard():
                     padding='3vh'
                 ),
             
-            background_image="url('https://150000629.v2.pressablecdn.com/wp-content/uploads/2021/01/learn--scaled.jpg')",
+            background_color="#E8DFCC",
             width="100%",
             height='100%'
             

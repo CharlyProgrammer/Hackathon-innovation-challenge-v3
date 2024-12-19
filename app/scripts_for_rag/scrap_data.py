@@ -46,22 +46,15 @@ class extract_web_data:
         return data,p
     def get_article(self,url):
         article=dict()
-        images=[]
-        port=""
         paraphs,hl=self.get_text_article(url)
         article["title"]=self.get_title_article(url)
         article["highlight"]=hl.text
         article["url"]=url
-        imgs,port=self.get_article_images(url)
         text=""     
         for paraph in paraphs:
             text+=f"{paraph.text}\n"
         article["content"]=text
-        if port!="":
-            images.append(port)
-        for image in imgs:
-            images.append(image.attrs["src"])
-        article["images"]=images    
+               
         return article
     
     

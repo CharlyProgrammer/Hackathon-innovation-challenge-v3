@@ -237,7 +237,7 @@ def home() -> rx.Component:
                     
                 ),
                 rx.button(
-                    "¡PRUEBA AHORA!",
+                    "TEST NOW!",
                     style={
                         "position": "absolute",  # Coloca el botón encima de la imagen
                         "top": "95%",            # Posición vertical centrada

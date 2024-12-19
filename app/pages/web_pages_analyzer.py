@@ -4,59 +4,63 @@ from app.styles import style_copilot
 from app.scripts_for_rag.calls_models import model_completion
 from app.scripts_for_rag.call_voice_models import voice_manager
 import time
-class StateImgAnalyzer(rx.State):
-    
-    img: str=""
-    response:str=""
+class StateWebAnalyzer(rx.State):
     title: str=""
-    text_bloq1:str=""
-    text_bloq2: str=""
+    article_highlight:str=""
+    article_text: str=""
     topic: str=""
     message_text:str=""
+    response:str=""
     historial: list[tuple[str, str]]
-    image_selector: str = ""
     article_selector:str=""
     chat_field: str=""
-    show_image:bool=False
     show_title: bool=False
+    
+    show_text_article: bool=False
     send_read_status: bool=False
     send_chat_status:bool=False
     message_status: bool=False
-    audio_loading_state: bool=False
     loading_state: bool=False
+    audio_loading_state: bool=False
     articles_urls:list[str]=[]
     articles_titles: list[str]=[]
-    images_article:list[str]=[]
-    images_urls:list[str]=[]
-    
+      
     @rx.event
             
-    def update_image_selector(self, value: str):
-        """Change the select value var."""
-        self.image_selector = value
-        self.send_chat_status=True
-        self.send_read_status=True
-        self.show_image=True
-        for idx,image in enumerate(self.images_article):
-            if self.image_selector==image:
-                self.img=self.images_urls[idx]
-                  
+    def update_selector_article(self,value:str):
+        self.article_selector=value
+        self.title=self.article_selector
+        self.show_title=True
+               
+        obj=extract_web_data()
+        
+        for idx,article in enumerate(self.articles_titles):
+            if self.article_selector==article:
+                
+                url=self.articles_urls[idx]
+                data=obj.get_article(url)
+                self.article_highlight=data["highlight"]
+                self.article_text=data["content"]
+                self.show_text_article=True
+                self.send_chat_status=True
+                self.send_read_status=True
+               
+                
+                    
     def update_chat_field(self,value):
         self.chat_field=value    
     def init_loading(self):
-         self.loading_state=True
-         
+        self.loading_state=True
     def init_audio_loading(self):
         self.audio_loading_state=True
-    
     def save_chat(self):
         
-        answer=run_conversation(self.chat_field,self.img)
+        answer=run_conversation(self.chat_field,self.article_text)
         self.response=answer
         self.loading_state=False
         self.historial.append((self.chat_field,answer))
         self.chat_field=""     
-    
+            
     def send_text_read(self):
         name="response.mp3"
         out_path=rx.get_upload_dir()/name
@@ -65,39 +69,14 @@ class StateImgAnalyzer(rx.State):
         voice_obj.convert_text_voice(text=self.response,synthesizer=client,output_file=out_path)
         time.sleep(5)
         self.audio_loading_state=False
-            
-    def update_selector_article(self,value:str):
-        self.article_selector=value
-        self.title=self.article_selector
-        self.show_title=True
-        self.images_article=[]
-        self.images_urls=[]
-        self.image_selector=""
-       
-        obj=extract_web_data()
         
-        for idx,article in enumerate(self.articles_titles):
-            if self.article_selector==article:
-                
-                url=self.articles_urls[idx]
-                images_data,port=obj.get_article_images(url)
-                if port!="":
-                    self.images_urls.append(port)
-                for url in images_data:
-                    self.images_urls.append(url.attrs["src"])
-                
-                for i in range(len(self.images_urls)):
-                    self.images_article.append(f"image {i+1}")
                    
     def update_topic_values(self,value:str):
         self.topic=value
         
     def load_articles_action(self):
         if self.topic!="":
-            self.image_selector=""
             self.article_selector=""
-            self.images_article=[]
-            self.images_urls=[]
             self.articles_urls=[]
             self.articles_titles=[]
             obj=extract_web_data()
@@ -108,69 +87,44 @@ class StateImgAnalyzer(rx.State):
             self.message_text=""
             self.send_chat_status=False
             self.send_read_status=False
+           
+            
         else:
-            self.image_selector=""
             self.article_selector=""
-            self.images_urls=[]
             self.articles_urls=[]
             self.articles_titles=[]
             self.topic=""
             self.message_text="<!> Error, topic field cannot be empty"
             self.message_status=True
             self.send_chat_status=False
-            self.send_read_status=False                   
-    def load_bloqs(self,path):
-        try:
-            with open(path,'r',encoding="utf-8") as file:
-                text=file.read().split('\n')
-                
-                self.text_bloq1=text[0]
-                self.text_bloq2=text[1]
-                
-        except FileNotFoundError:
-            self.text_bloq1 = "La información no fue encontrada."
-            self.text_bloq2 = "La información no fue encontrada."
+            self.send_read_status=False
+                            
+    
     
     def back_action(self):
-        self.image_selector=""
+       
         self.article_selector=""
-        self.show_title=False
-        self.images_urls=[]
         self.articles_urls=[]
         self.articles_titles=[]
         self.historial=[]
-        self.img=""
         self.title=""
         self.topic=""
-        self.show_image=False
+        
+        self.show_text_article=False
         self.send_chat_status=False
         self.send_read_status=False
+        
         return rx.redirect("/home/dashboard")
 
-def run_conversation(user_prompt,img_url):
+def run_conversation(user_prompt,context):
     #obj_llm_completion=model_completion("LLAMA_KEY","LLAMA_MODEL","OPENAI_KEY","OPENAI_MODEL","OPENAI_ENDPOINT")
-    refs=""
-    obj_llm_completion=model_completion(model_version_llama="LLAMA_MODEL_VISION",key_model_llama="LLAMA_KEY")
-    messages=[{
-                "role": "user",
-                "content": [
-                    {
-                        "type": "text",
-                        "text": user_prompt
-                    },
-                    {
-                        "type": "image_url",
-                        "image_url": {
-                            "url": img_url
-                        }
-                    }
-                ]
-            }]
-    client=obj_llm_completion.init_llama_model(temperature=0.8,max_tokens=800)
-    response=obj_llm_completion.generate_response_llama(client=client,messages=messages)
-    #client=obj_llm_completion.init_model_openai()
-    #response=obj_llm_completion.generate_response_openai(client=client,prompt=user_prompt,temperature=0.7)
-    return response+f"{refs}"
+    
+    obj_llm_completion=model_completion(key_model_oa="OPENAI_KEY",endpoint_oa="OPENAI_ENDPOINT",model_version_oa="OPENAI_MODEL")
+    messages=[{"role": "user","content": f"Based in the next context:{context}, answer the next query:{user_prompt}"}]
+    client=obj_llm_completion.init_model_openai()
+    response=obj_llm_completion.generate_response_openai(client=client,messages=messages,temperature=0.8,max_tokens=800)
+   
+    return response
 
 def qa(question: str, answer: str) -> rx.Component:
     return rx.box(
@@ -190,7 +144,7 @@ def chat() -> rx.Component:
     
     return rx.box(
         rx.foreach(
-            StateImgAnalyzer.historial,
+            StateWebAnalyzer.historial,
             lambda messages: qa(messages[0], messages[1]),
         ),
         width="40vw"
@@ -201,28 +155,28 @@ def chat() -> rx.Component:
 def action_bar() -> rx.Component:
     return rx.hstack(
         rx.input(
-            value=StateImgAnalyzer.chat_field,
+            value=StateWebAnalyzer.chat_field,
             placeholder="Make a question",
-            on_change=StateImgAnalyzer.update_chat_field, 
+            on_change=StateWebAnalyzer.update_chat_field, 
             style=style_copilot.input_style,
             background_color="white",
             height="4vh"
         ),
         rx.button(
             "Send",
-            on_click=lambda:[StateImgAnalyzer.init_loading,StateImgAnalyzer.save_chat],
+            on_click=lambda:[StateWebAnalyzer.init_loading,StateWebAnalyzer.save_chat],
             style=style_copilot.button_style,
             height="4vh",
-            loading=StateImgAnalyzer.loading_state,
-            display=rx.cond(StateImgAnalyzer.send_chat_status,"block","none")
+            loading=StateWebAnalyzer.loading_state,
+            display=rx.cond(StateWebAnalyzer.send_chat_status,"block","none")
         ),
-         rx.button(
+        rx.button(
             "Read",
-            on_click=lambda:[StateImgAnalyzer.init_audio_loading,StateImgAnalyzer.send_text_read],
+            on_click=lambda:[StateWebAnalyzer.init_audio_loading,StateWebAnalyzer.send_text_read],
             style=style_copilot.button_style,
             height="4vh",
-            loading=StateImgAnalyzer.audio_loading_state,
-            display=rx.cond(StateImgAnalyzer.send_read_status,"block","none")
+            loading=StateWebAnalyzer.audio_loading_state,
+            display=rx.cond(StateWebAnalyzer.send_read_status,"block","none")
         ),
         rx.audio(
             url=rx.get_upload_url("response.mp3"),
@@ -238,7 +192,7 @@ def action_bar() -> rx.Component:
 
 
         
-def image_analyzer_page():
+def web_analyzer_page():
      return rx.box(
         rx.hstack(
             rx.hstack(
@@ -326,7 +280,7 @@ def image_analyzer_page():
                     _hover={
                         "color": "cyan"  # Cambia el color del texto al pasar el cursor
                     },
-                    on_click=StateImgAnalyzer.back_action 
+                    on_click=StateWebAnalyzer.back_action 
                 ),
                 
                 spacing='60px',
@@ -360,7 +314,7 @@ def image_analyzer_page():
                         
                         ),
                         rx.text(
-                            "Unlock a world of discovery in science, technology, and entertainment. The Image Analyzer lets you explore content-rich visuals with precision. Search for images across these themes, delve into their details, and ask AI-powered questions about each result. But it doesn’t stop there—generate insightful metadata, and create descriptive summaries with cutting-edge computer vision. Let your curiosity lead the way and redefine how you interact with images!",
+                            "Unlock a world of knowledge at your fingertips with the Web Analyzer. Dive into relevant content tailored to your interests—be it science, technology, or any field you desire. Select articles that inspire curiosity, explore them with our interactive chat tool, and ask questions to enrich your learning experience. Whether you're seeking insights, deepening your understanding, or exploring new frontiers, the Web Analyzer empowers you to interact with information in a more engaging and meaningful way. Start your journey of discovery today!",
                             style={
                                 "padding-top": "20px",    
                                 "padding-bottom": "16px",  
@@ -382,20 +336,20 @@ def image_analyzer_page():
                     spacing='8px'
                     ),
                     rx.box(
-                        rx.heading("Instructions for the 🖼 Image Analyzer",paddingX='1vw'),
+                        rx.heading("Instructions for the 🌐 Web Analyzer",paddingX='1vw'),
                         rx.unordered_list(
-                            rx.list_item(rx.text("Select Your Preferred Topic:",weight="bold"),rx.text("Begin by selecting the topic of your interest—be it science, technology, or another field relevant to your needs. This helps personalize your search and focuses on the content most relevant to you.")),
-                            rx.list_item(rx.text("Load the Content:",weight="bold"),rx.text("Click the 'load content' button to load articles from scientific publications, technology showcases, or other relevant sources. The system will scan through these documents to extract images.")),
-                            rx.list_item(rx.text("Choose Your Preferred Article:",weight="bold"),rx.text("Once the article is uploaded, select the article that interests you the most. The system will analyze the content and extract relevant images from the chosen article.")),
-                            rx.list_item(rx.text("Interactive Image Selection:",weight="bold"),rx.text("A dynamic, interactive list of extracted images will appear. Browse through these images and select the ones that capture your attention or are relevant to your inquiry.")),
-                            rx.list_item(rx.text("Ask Questions About the Images:",weight="bold"),rx.text("Once an image is selected, use the AI-driven interface to ask questions about it. The Image Analyzer will provide detailed insights, visual context, and descriptive summaries based on advanced computer vision.")),
-                            rx.list_item(rx.text("Repeat for New Topics:",weight="bold"),rx.text("For each new topic or article, repeat the process—select the topic, upload the article, extract images, and explore. The system ensures seamless interaction, letting you dive deeper into each area of interest effortlessly.")),
+                            rx.list_item(rx.text("Enter Your Preferred Topic:",weight="bold"),rx.text("Start by typing the topic of your interest into the Topic field. This will help tailor your search and focus on content relevant to your needs.")),
+                            rx.list_item(rx.text("Load the Content:",weight="bold"),rx.text("Click the 'Load Content' button to retrieve search results related to your chosen topic. The system will gather and display relevant articles based on your input.")),
+                            rx.list_item(rx.text("Choose Your Preferred Article:",weight="bold"),rx.text("Once the content is loaded, a list of relevant articles will appear. Select the one that interests you the most to dive deeper into its content.")),
+                            rx.list_item(rx.text("Activate the Chat with the Article:",weight="bold"),rx.text("Upon selecting an article, the system will activate a chat interface or a copilot tool for that specific article. Use it to ask questions, explore deeper insights, and enhance your understanding of the content.")),
+                            rx.list_item(rx.text("Ask Questions & Explore:",weight="bold"),rx.text("View the article content, engage with the chat interface, and ask questions to gain detailed explanations, summaries, or any additional information you seek.")),
+                            rx.list_item(rx.text("Repeat for New Topics:",weight="bold"),rx.text("For each new topic, repeat the process—select a new topic, retrieve and select articles, and explore using the chat feature. Each session resets, ensuring fresh interactions with every query.")),
                             paddingX='2vw',
                             paddingY="1vh"
                             
 
                         ),
-                        rx.text("Let your exploration begin and unlock a new way to interact with visual content!",paddingX='1vw'),
+                        rx.text("Let your exploration begin and unlock a new way to interact with your favorite content!",paddingX='1vw'),
                         
                     direction="column",
                     height="100%",
@@ -423,9 +377,9 @@ def image_analyzer_page():
                         rx.box(
                             rx.input(
                                 width='50%',
-                                value=StateImgAnalyzer.topic,
+                                value=StateWebAnalyzer.topic,
                                 placeholder="Write the topic to search",
-                                on_change=StateImgAnalyzer.update_topic_values, 
+                                on_change=StateWebAnalyzer.update_topic_values, 
                                 
                             ),
                             style={
@@ -447,7 +401,7 @@ def image_analyzer_page():
                                 _hover={
                                     "color": "#FFD700"  # Cambia el color del texto al pasar el cursor
                                 },
-                                on_click=StateImgAnalyzer.load_articles_action,
+                                on_click=StateWebAnalyzer.load_articles_action,
                                 style={
                                     "background-color": "#1A237E",
                                     "height": "4vh",
@@ -467,13 +421,13 @@ def image_analyzer_page():
                         ),
                         rx.center(
                             rx.text(
-                                StateImgAnalyzer.message_text,
+                                StateWebAnalyzer.message_text,
                                 color="red",
                                 font_family="Times New Roman",
                                 font_size="18px",
                                 weight="bold",
                                 padding_bottom="2vh",
-                                display=rx.cond(StateImgAnalyzer.message_status,"block","none")
+                                display=rx.cond(StateWebAnalyzer.message_status,"block","none")
                                 
                             ),
                         ),    
@@ -484,7 +438,7 @@ def image_analyzer_page():
                                     rx.select.content(
                                         rx.select.group(
                                             rx.foreach(
-                                                StateImgAnalyzer.articles_titles,
+                                                StateWebAnalyzer.articles_titles,
                                                 lambda x: rx.select.item(
                                                     x, value=x
                                                 ),
@@ -493,8 +447,8 @@ def image_analyzer_page():
                                         color_scheme='amber',
                                         variant='solid'
                                     ),
-                                    value=StateImgAnalyzer.article_selector,
-                                    on_change=StateImgAnalyzer.update_selector_article,
+                                    value=StateWebAnalyzer.article_selector,
+                                    on_change=StateWebAnalyzer.update_selector_article,
                                     size='3'
                                 
     ,
@@ -505,7 +459,7 @@ def image_analyzer_page():
                     rx.box(
                         
                         rx.heading(
-                            StateImgAnalyzer.title,
+                            StateWebAnalyzer.title,
                             align="center",
                             font_family="Console",
                             font_size="38px",
@@ -519,47 +473,39 @@ def image_analyzer_page():
                         paddingY='3vh',
                         border_color="black",  # Color del borde
                         border_width="2px",
-                        display=rx.cond(StateImgAnalyzer.show_title,"block","none")
+                        display=rx.cond(StateWebAnalyzer.show_title,"block","none")
                   
                     ),
                     
                     
-                    rx.fragment(
-                            rx.select.root(
-                                rx.select.trigger(color_scheme='blue',variant='soft', placeholder="Select an image"),
-                                rx.select.content(
-                                    rx.select.group(
-                                        rx.foreach(
-                                            StateImgAnalyzer.images_article,
-                                            lambda x: rx.select.item(
-                                                x, value=x
-                                            ),
-                                        )
-                                    ),
-                                    color_scheme='amber',
-                                    variant='solid'
-                                ),
-                                value=StateImgAnalyzer.image_selector,
-                                on_change=StateImgAnalyzer.update_image_selector,
-                                size='3'
-                               
-,
-                            )                       
-                    ),
+                   
                     
-                    rx.image(
-                    
-                    src=StateImgAnalyzer.img,  # URL de la imagen
-                    alt="Descripción de la imagen",
-                    width="60%",  # Ancho de la imagen
-                    height="40vh",   # Altura ajustada automáticamente
-                    align="center",
-                    display=rx.cond(StateImgAnalyzer.show_image,"block","none")
+                    rx.box(
+                        
+                        rx.text(
+                            StateWebAnalyzer.article_text,
+                            align="center",
+                            font_family="Console",
+                            font_size="18px",
+                            weight="normal",
+                            style={'text-align': 'justify'} ,
+                            paddingX="1vw"
+                        
+                        ),
+                        direction="column",
+                        height="fit-content",
+                        background_color="#E3E4E5",
+                        width="90%",
+                        paddingY='3vh',
+                        border_color="black",  # Color del borde
+                        border_width="2px",
+                        display=rx.cond(StateWebAnalyzer.show_text_article,"block","none")
+                  
                     ),
                     rx.box(
                         rx.center(
                             rx.heading(
-                            "Chat with the image",
+                            "Chat with the article",
                             align="center",
                             font_family="Console",
                             font_size="38px",

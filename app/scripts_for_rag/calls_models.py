@@ -5,7 +5,7 @@ from langchain_groq import ChatGroq
 load_dotenv(dotenv_path=os.path.dirname(os.getcwd())+'/innovation_challenge_v3/app/scripts_for_rag/.env')
 
 class model_completion:
-    def __init__(self,key_model_llama,model_version_llama,key_model_oa="",model_version_oa="", endpoint_oa=""):
+    def __init__(self,key_model_llama="",model_version_llama="",key_model_oa="",model_version_oa="", endpoint_oa=""):
        
         self.key_model_llama=key_model_llama
         self.model_version_llama=model_version_llama
@@ -50,7 +50,7 @@ class model_completion:
         api_version="2024-05-01-preview",  
 
         )
-        print( client)
+        
         return client  
     
     def generate_response_llama(self,client,messages):
@@ -60,78 +60,20 @@ class model_completion:
         return response.content
     
     
-    def generate_response_openai(self,client,prompt,temperature):
+    def generate_response_openai(self,client,messages,temperature,max_tokens):
         #self.openai_model = os.getenv(self.model_version_oa)
         print(self.openai_model)
         response = client.chat.completions.create(  
 
-        model=self.openai_model,  
-
-        messages=[
-
-            {
-
-                "role": "system",
-
-                "content": "Tu eres un asistente a quien le gusta responder diferentes preguntas de forma concisa y precisa."
-
-            },
-
-            {
-
-                "role": "user",
-
-                "content": prompt
-
-            },
-
-            
-        ],  
-
-              
-                max_tokens=800,  
-
-                temperature=temperature,  
-
-                top_p=0.95,  
-
-                frequency_penalty=0,  
-
-                presence_penalty=0,  
-
-                stop=None,  
-
-                extra_body={  
-
-                    "data_sources": [  
-
-                        {  
-
-                            "type": "azure_search",  
-
-                            "parameters": {  
-
-                                "endpoint": f"{os.getenv('AI_SEARCH_ENDPOINT')}",  
-
-                                "index_name": f"{os.getenv('INDEX_NAME')}",  
-
-                                "authentication": {
-
-                                "type": "api_key",
-
-                                "key": f"{os.getenv('AI_SEARCH_KEY')}"
-
-                                }
-
-                            }  
-
-                        }  
-
-                    ]  
-
-                }  
-
-            )  
+                    model=self.openai_model,  
+                    messages=messages,  
+                    max_tokens=max_tokens,  
+                    temperature=temperature,  
+                    top_p=0.95,  
+                    frequency_penalty=0,  
+                    presence_penalty=0,  
+                    stop=None,  
+                    )  
 
                 
 
