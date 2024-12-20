@@ -4,8 +4,7 @@ class StateTeam(rx.State):
     data_cards:list[list]=[
             [1,"Carlos Maldonado","/video.jpg","[Member]"],
             [2,"Charlie","/website_analyzer.jpg","[Member]"],
-            [3,"Mike","https://www.nunsys.com/wp-content/uploads/2021/07/shutterstock_230958076-759x500-1.jpg","[Member]"],
-            
+                
             
         ]
 

@@ -1,49 +1,49 @@
 import reflex as rx 
-from app.scripts_for_rag.scrap_data import extract_web_data
+from app.scripts_for_rag.scrap_video_data import extract_video_data
 from app.styles import style_copilot
 from app.scripts_for_rag.calls_models import model_completion
 from app.scripts_for_rag.call_voice_models import voice_manager
+
 import time
 import os
-class StateWebAnalyzer(rx.State):
+class StateVideoAnalyzer(rx.State):
     title: str=""
-    article_highlight:str=""
-    article_text: str=""
+    url:str=""
+    video_text: str=""
     topic: str=""
     message_text:str=""
     response:str=""
     historial: list[tuple[str, str]]
-    article_selector:str=""
+    video_selector:str=""
     chat_field: str=""
     show_title: bool=False
-    show_text_article: bool=False
+    show_video: bool=False
     send_read_status: bool=False
     send_chat_status:bool=False
     voice_status: bool=False
     message_status: bool=False
     loading_state: bool=False
+    loading_content_state:bool=False
     audio_loading_state: bool=False
     show_audio: bool=False
-    articles_urls:list[str]=[]
-    articles_titles: list[str]=[]
+    video_urls:list[str]=[]
+    video_titles: list[str]=[]
       
     @rx.event
             
-    def update_selector_article(self,value:str):
-        self.article_selector=value
-        self.title=self.article_selector
-        self.show_title=True
-               
-        obj=extract_web_data()
-        
-        for idx,article in enumerate(self.articles_titles):
-            if self.article_selector==article:
+    def update_selector_video(self,value:str):
+        self.video_selector=value
+        self.title=self.video_selector
+          
+        for idx,title in enumerate(self.video_titles):
+            if self.video_selector==title:
                 
-                url=self.articles_urls[idx]
-                data=obj.get_article(url)
-                self.article_highlight=data["highlight"]
-                self.article_text=data["content"]
-                self.show_text_article=True
+                self.url=self.video_urls[idx]
+                obj=extract_video_data()
+                #get text from video
+                self.video_text=obj.get_transcription(self.url)
+                self.show_title=True
+                self.show_video=True 
                 self.send_chat_status=True
                 self.send_read_status=True
                 self.show_audio=False
@@ -54,12 +54,14 @@ class StateWebAnalyzer(rx.State):
         self.chat_field=value    
     def init_loading(self):
         self.loading_state=True
+    def init_content_loading(self):
+        self.loading_content_state=True    
     def init_audio_loading(self):
         self.show_audio=False
         self.audio_loading_state=True
     def save_chat(self):
         try:
-            answer=run_conversation(self.chat_field,self.article_text)
+            answer=run_conversation(self.chat_field,self.video_text)
             self.response=answer
             self.loading_state=False
             self.historial.append((self.chat_field,answer))
@@ -81,7 +83,7 @@ class StateWebAnalyzer(rx.State):
         voice=voice_obj.convert_voice_text(speech_recognizer=client)
         if voice!="":
             try:
-                answer=run_conversation(voice,self.article_text)
+                answer=run_conversation(voice,self.video_text)
                 self.response=answer
                 self.historial.append((voice,answer))
                 self.chat_field=""
@@ -124,25 +126,28 @@ class StateWebAnalyzer(rx.State):
         
     def load_articles_action(self):
         if self.topic!="":
-            self.article_selector=""
-            self.articles_urls=[]
-            self.articles_titles=[]
-            obj=extract_web_data()
-            urls,titles=obj.get_articles_search(self.topic)
-            self.articles_urls=urls
-            self.articles_titles=titles
+            self.video_selector=""
+            self.video_urls=[]
+            self.video_titles=[]
+            obj=extract_video_data()
+            video_data=obj.get_video_search(self.topic)
+            for video in video_data:
+                self.video_urls.append(video["url"])
+                self.video_titles.append(video["title"])
+            
             self.message_status=False
             self.message_text=""
+            self.loading_content_state=False
             self.send_chat_status=False
             self.send_read_status=False
             self.show_audio=False
-          
+            self.show_video=False
            
             
         else:
-            self.article_selector=""
-            self.articles_urls=[]
-            self.articles_titles=[]
+            self.video_selector=""
+            self.video_urls=[]
+            self.video_titles=[]
             self.topic=""
             self.message_text="<!> Error, topic field cannot be empty"
             self.message_status=True
@@ -153,14 +158,15 @@ class StateWebAnalyzer(rx.State):
     
     def back_action(self):
        
-        self.article_selector=""
-        self.articles_urls=[]
-        self.articles_titles=[]
+        self.video_selector=""
+        self.video_urls=[]
+        self.video_titles=[]
         self.historial=[]
         self.title=""
         self.topic=""
         self.show_audio=False
-        self.show_text_article=False
+        self.show_video=False
+        self.show_title=False
         self.send_chat_status=False
         self.send_read_status=False
         self.voice_status=False
@@ -173,7 +179,7 @@ def run_conversation(user_prompt,context):
     #obj_llm_completion=model_completion("LLAMA_KEY","LLAMA_MODEL","OPENAI_KEY","OPENAI_MODEL","OPENAI_ENDPOINT")
     
     obj_llm_completion=model_completion(key_model_oa="OPENAI_KEY",endpoint_oa="OPENAI_ENDPOINT",model_version_oa="OPENAI_MODEL")
-    messages=[{"role": "user","content": f"Based in the next context:{context}, answer the next query:{user_prompt}"}]
+    messages=[{"role": "user","content": f"Based in the next context that is a video transcription:{context}, answer the next query:{user_prompt}"}]
     client=obj_llm_completion.init_model_openai()
     response=obj_llm_completion.generate_response_openai(client=client,messages=messages,temperature=0.8,max_tokens=800)
    
@@ -197,7 +203,7 @@ def chat() -> rx.Component:
     
     return rx.box(
         rx.foreach(
-            StateWebAnalyzer.historial,
+            StateVideoAnalyzer.historial,
             lambda messages: qa(messages[0], messages[1]),
         ),
         width="40vw"
@@ -208,16 +214,16 @@ def chat() -> rx.Component:
 def action_bar() -> rx.Component:
     return rx.hstack(
         rx.input(
-            value=StateWebAnalyzer.chat_field,
+            value=StateVideoAnalyzer.chat_field,
             placeholder="Make a question",
-            on_change=StateWebAnalyzer.update_chat_field, 
+            on_change=StateVideoAnalyzer.update_chat_field, 
             style=style_copilot.input_style,
             background_color="white",
             height="4vh"
         ),
         rx.button(
             "Send",
-            on_click=lambda:[StateWebAnalyzer.init_loading,StateWebAnalyzer.save_chat],
+            on_click=lambda:[StateVideoAnalyzer.init_loading,StateVideoAnalyzer.save_chat],
             style=style_copilot.button_style,
             height="4vh",
             
@@ -225,13 +231,13 @@ def action_bar() -> rx.Component:
             _hover={
                 "color": "#FFD700"  # Cambia el color del texto al pasar el cursor
             },
-            loading=StateWebAnalyzer.loading_state,
-            display=rx.cond(StateWebAnalyzer.send_chat_status,"block","none")
+            loading=StateVideoAnalyzer.loading_state,
+            display=rx.cond(StateVideoAnalyzer.send_chat_status,"block","none")
         ),
         rx.button(
             rx.icon("mic"),
-            background_color=rx.cond(StateWebAnalyzer.voice_status,"red","blue"),
-            on_click=lambda:[StateWebAnalyzer.change_mic_status,StateWebAnalyzer.save_voice],
+            background_color=rx.cond(StateVideoAnalyzer.voice_status,"red","blue"),
+            on_click=lambda:[StateVideoAnalyzer.change_mic_status,StateVideoAnalyzer.save_voice],
             style=style_copilot.button_style,
             height="4vh",
             cursor="pointer",
@@ -239,23 +245,23 @@ def action_bar() -> rx.Component:
                 "color": "#FFD700"  # Cambia el color del texto al pasar el cursor
             },
             
-            display=rx.cond(StateWebAnalyzer.send_chat_status,"block","none")
+            display=rx.cond(StateVideoAnalyzer.send_chat_status,"block","none")
         ),
         rx.button(
             "Read",
-            on_click=lambda:[StateWebAnalyzer.init_audio_loading,StateWebAnalyzer.send_text_read],
+            on_click=lambda:[StateVideoAnalyzer.init_audio_loading,StateVideoAnalyzer.send_text_read],
             style=style_copilot.button_style,
             cursor="pointer",
             _hover={
                 "color": "#FFD700"  # Cambia el color del texto al pasar el cursor
             },
             height="4vh",
-            loading=StateWebAnalyzer.audio_loading_state,
-            display=rx.cond(StateWebAnalyzer.send_read_status,"block","none")
+            loading=StateVideoAnalyzer.audio_loading_state,
+            display=rx.cond(StateVideoAnalyzer.send_read_status,"block","none")
         ),
         rx.box(
             rx.cond(
-                StateWebAnalyzer.show_audio,
+                StateVideoAnalyzer.show_audio,
                 rx.audio(
                     url=rx.get_upload_url("response.mp3"),
                     width="400px",
@@ -361,7 +367,7 @@ def video_analyzer_page():
                     _hover={
                         "color": "cyan"  # Cambia el color del texto al pasar el cursor
                     },
-                    on_click=StateWebAnalyzer.back_action 
+                    on_click=StateVideoAnalyzer.back_action 
                 ),
                 
                 spacing='60px',
@@ -383,7 +389,7 @@ def video_analyzer_page():
                     rx.box(
                         
                         rx.heading(
-                            "Welcome to the image analyzer",
+                            "Welcome to the Video analyzer",
                             align="center",
                             font_family="Console",
                             font_size="38px",
@@ -395,7 +401,7 @@ def video_analyzer_page():
                         
                         ),
                         rx.text(
-                            "Unlock a world of knowledge at your fingertips with the Web Analyzer. Dive into relevant content tailored to your interests—be it science, technology, or any field you desire. Select articles that inspire curiosity, explore them with our interactive chat tool, and ask questions to enrich your learning experience. Whether you're seeking insights, deepening your understanding, or exploring new frontiers, the Web Analyzer empowers you to interact with information in a more engaging and meaningful way. Start your journey of discovery today!",
+                            "Transform how you interact with video content using the Video Analyzer. Search any topic, browse curated video titles, and dive into selected content with transcriptions and AI-driven Q&A. Experience hands-free interaction with voice input and audio output, redefining accessibility. Whether you're learning, researching, or just exploring, the Video Analyzer lets you unlock the secrets within every frame.",
                             style={
                                 "padding-top": "20px",    
                                 "padding-bottom": "16px",  
@@ -407,6 +413,7 @@ def video_analyzer_page():
                             text_align="justify",
                         ),
                         
+                        
                     direction="column",
                     height="100%",
                     background_color="#E3E4E5",
@@ -417,14 +424,13 @@ def video_analyzer_page():
                     spacing='8px'
                     ),
                     rx.box(
-                        rx.heading("Instructions for the 🌐 Web Analyzer",paddingX='1vw'),
+                        rx.heading("Instructions for 🎥 Video Analyzer",paddingX='1vw'),
                         rx.unordered_list(
-                            rx.list_item(rx.text("Enter Your Preferred Topic: ",weight="bold"),rx.text("Start by typing the topic of your interest into the Topic field. This will help tailor your search and focus on content relevant to your needs.")),
-                            rx.list_item(rx.text("Load the Content: ",weight="bold"),rx.text("Click the 'Load Content' button to retrieve search results related to your chosen topic. The system will gather and display relevant articles based on your input.")),
-                            rx.list_item(rx.text("Choose Your Preferred Article: ",weight="bold"),rx.text("Once the content is loaded, a list of relevant articles will appear. Select the one that interests you the most to dive deeper into its content.")),
-                            rx.list_item(rx.text("Activate the Chat with the Article: ",weight="bold"),rx.text("Upon selecting an article, the system will activate a chat interface or a copilot tool for that specific article. Use it to ask questions, explore deeper insights, and enhance your understanding of the content.")),
-                            rx.list_item(rx.text("Ask Questions & Explore: ",weight="bold"),rx.text("View the article content, engage with the chat interface, and ask questions to gain detailed explanations, summaries, or any additional information you seek.")),
-                            rx.list_item(rx.text("Repeat for New Topics: ",weight="bold"),rx.text("For each new topic, repeat the process—select a new topic, retrieve and select articles, and explore using the chat feature. Each session resets, ensuring fresh interactions with every query.")),
+                            rx.list_item(rx.text("Enter Your Preferred Topic: ",weight="bold"),rx.text("Begin your journey by typing your topic of interest in the designated search field. Let your curiosity guide you!")),
+                            rx.list_item(rx.text("Load the Content: ",weight="bold"),rx.text("Click the 'Load Content' button, and watch as the system works its magic, fetching a curated list of video titles based on your chosen topic.")),
+                            rx.list_item(rx.text("Choose Your Preferred Video: ",weight="bold"),rx.text("From the interactive list, select a video that sparks your interest. Upon selection, the system will display the video and its title, immersing you in the content.")),
+                            rx.list_item(rx.text("Activate the AI features: ",weight="bold"),rx.text("If a transcription is available for the video, it will activate the chat with AI automatically. Use this feature to explore the video’s full narrative, enhancing your understanding about it.")),
+                            rx.list_item(rx.text("Ask Your Questions: ",weight="bold"),rx.text("Unlock the power of AI! Whether you prefer typing in the chat or speaking via microphone, ask questions about the video’s content. The system processes your input and delivers insightful answers, either in text or through audio responses.")),                           
                             rx.list_item(rx.text("Inputs: ",weight="bold"),rx.text("For each new prompt or query, our system can process either a text input in the chat or an audio input through a microphone (just push the button and speak when it is in red)")),
                             rx.list_item(rx.text("Outputs: ",weight="bold"),rx.text("Like in the case of the inputs, our system can give either a text output in the chat or an audio output through a speaker element (just push the button 'READ' and wait it is ready, but sometimes it can take a few minutes)")),
                             paddingX='2vw',
@@ -432,7 +438,9 @@ def video_analyzer_page():
                             
 
                         ),
-                        rx.text("Let your exploration begin and unlock a new way to interact with your favorite content!",paddingX='1vw'),
+                        rx.text("💡 Discover the Boundless Possibilities",weight="bold",paddingX='1vw'),
+                        rx.text("The Video Analyzer combines cutting-edge AI with interactive features to bring video exploration to life. Dive deep into video content, ask insightful questions, and enjoy answers delivered in multiple formats. No limits, no barriers—just pure discovery.",paddingX='1vw'),
+                        
                         
                     direction="column",
                     height="100%",
@@ -460,9 +468,9 @@ def video_analyzer_page():
                         rx.box(
                             rx.input(
                                 width='50%',
-                                value=StateWebAnalyzer.topic,
+                                value=StateVideoAnalyzer.topic,
                                 placeholder="Write the topic to search",
-                                on_change=StateWebAnalyzer.update_topic_values, 
+                                on_change=StateVideoAnalyzer.update_topic_values, 
                                 
                             ),
                             style={
@@ -484,7 +492,8 @@ def video_analyzer_page():
                                 _hover={
                                     "color": "#FFD700"  # Cambia el color del texto al pasar el cursor
                                 },
-                                on_click=StateWebAnalyzer.load_articles_action,
+                                on_click=lambda:[StateVideoAnalyzer.init_content_loading,StateVideoAnalyzer.load_articles_action],
+                                loading=StateVideoAnalyzer.loading_content_state,
                                 style={
                                     "background-color": "#1A237E",
                                     "height": "4vh",
@@ -504,24 +513,24 @@ def video_analyzer_page():
                         ),
                         rx.center(
                             rx.text(
-                                StateWebAnalyzer.message_text,
+                                StateVideoAnalyzer.message_text,
                                 color="red",
                                 font_family="Times New Roman",
                                 font_size="18px",
                                 weight="bold",
                                 padding_bottom="2vh",
-                                display=rx.cond(StateWebAnalyzer.message_status,"block","none")
+                                display=rx.cond(StateVideoAnalyzer.message_status,"block","none")
                                 
                             ),
                         ),    
                         rx.center(
                             rx.fragment(
                                 rx.select.root(
-                                    rx.select.trigger(color_scheme='blue',variant='soft', placeholder="Select an article"),
+                                    rx.select.trigger(color_scheme='blue',variant='soft', placeholder="Select a video"),
                                     rx.select.content(
                                         rx.select.group(
                                             rx.foreach(
-                                                StateWebAnalyzer.articles_titles,
+                                                StateVideoAnalyzer.video_titles,
                                                 lambda x: rx.select.item(
                                                     x, value=x
                                                 ),
@@ -530,8 +539,8 @@ def video_analyzer_page():
                                         color_scheme='amber',
                                         variant='solid'
                                     ),
-                                    value=StateWebAnalyzer.article_selector,
-                                    on_change=StateWebAnalyzer.update_selector_article,
+                                    value=StateVideoAnalyzer.video_selector,
+                                    on_change=StateVideoAnalyzer.update_selector_video,
                                     size='3'
                                 
     ,
@@ -542,7 +551,7 @@ def video_analyzer_page():
                     rx.box(
                         
                         rx.heading(
-                            StateWebAnalyzer.title,
+                            StateVideoAnalyzer.title,
                             align="center",
                             font_family="Console",
                             font_size="38px",
@@ -556,7 +565,7 @@ def video_analyzer_page():
                         paddingY='3vh',
                         border_color="black",  # Color del borde
                         border_width="2px",
-                        display=rx.cond(StateWebAnalyzer.show_title,"block","none")
+                        display=rx.cond(StateVideoAnalyzer.show_title,"block","none")
                   
                     ),
                     
@@ -564,17 +573,13 @@ def video_analyzer_page():
                    
                     
                     rx.box(
-                        
-                        rx.text(
-                            StateWebAnalyzer.article_text,
-                            align="center",
-                            font_family="Console",
-                            font_size="18px",
-                            weight="normal",
-                            style={'text-align': 'justify'} ,
-                            paddingX="1vw"
-                        
-                        ),
+                        rx.center(
+                            rx.video(
+                                url=StateVideoAnalyzer.url,
+                                width="30vw",
+                                height="30vh",
+                            ),
+                        ),    
                         direction="column",
                         height="fit-content",
                         background_color="#E3E4E5",
@@ -582,7 +587,7 @@ def video_analyzer_page():
                         paddingY='3vh',
                         border_color="black",  # Color del borde
                         border_width="2px",
-                        display=rx.cond(StateWebAnalyzer.show_text_article,"block","none")
+                        display=rx.cond(StateVideoAnalyzer.show_video,"block","none")
                   
                     ),
                     rx.box(

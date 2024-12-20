@@ -383,7 +383,7 @@ def web_analyzer_page():
                     rx.box(
                         
                         rx.heading(
-                            "Welcome to the image analyzer",
+                            "Welcome to the Web analyzer",
                             align="center",
                             font_family="Console",
                             font_size="38px",
