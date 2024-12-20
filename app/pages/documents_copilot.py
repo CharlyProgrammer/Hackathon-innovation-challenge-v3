@@ -114,10 +114,10 @@ class StateDocsAnalyzer(rx.State):
 def run_conversation(user_prompt):
     #obj_llm_completion=model_completion("LLAMA_KEY","LLAMA_MODEL","OPENAI_KEY","OPENAI_MODEL","OPENAI_ENDPOINT")
     
-    obj_llm_completion=model_completion(key_model_oa="OPENAI_KEY",endpoint_oa="OPENAI_ENDPOINT",model_version_oa="OPENAI_MODEL")
+    obj_llm_completion=model_completion(key_model_oa="OPENAI_KEY",endpoint_oa="OPENAI_ENDPOINT",model_version_oa="OPENAI_RAG_MODEL")
     messages=[{"role": "user","content": f"Based in the context, answer the next query:{user_prompt}"}]
     client=obj_llm_completion.init_model_openai()
-    response=obj_llm_completion.generate_response_openai(client=client,messages=messages,temperature=0.8,max_tokens=800)
+    response=obj_llm_completion.generate_response_RAG_openai(client=client,messages=messages,temperature=0.8,max_tokens=800)
    
     return response
 

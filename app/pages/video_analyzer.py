@@ -593,7 +593,7 @@ def video_analyzer_page():
                     rx.box(
                         rx.center(
                             rx.heading(
-                            "Chat with the article",
+                            "Chat with the video",
                             align="center",
                             font_family="Console",
                             font_size="38px",
