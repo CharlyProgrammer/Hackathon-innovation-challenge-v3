@@ -202,7 +202,7 @@ def home() -> rx.Component:
                     
                 ),
                 rx.image(
-                    src="/home-beneficios.png",  # Ruta de la imagen
+                    src="/functionalities.png",  # Ruta de la imagen
                     alt="Descripción de la imagen",
                     width="100%",  # Ancho de la imagen
                     height="50vh",   # Altura ajustada automáticamente

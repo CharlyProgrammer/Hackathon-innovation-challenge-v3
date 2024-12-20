@@ -10,9 +10,9 @@ class StateDashboard(rx.State):
     user:str=""
     data_cards:list[list]=[
         [1,"🚀 Unleash the Power of Video Exploration!","/video.jpg","Transform how you interact with video content using the Video Analyzer. Search any topic, browse curated video titles, and dive into selected content with transcriptions and AI-driven Q&A. Experience hands-free interaction with voice input and audio output, redefining accessibility. Whether you're learning, researching, or just exploring, the Video Analyzer lets you unlock the secrets within every frame. Dive into discovery today—where no question is out of reach and every answer awaits!",status_button_1,'/home/dashboard/video-analyzer'],
-        [2,"Tools for webpage analysis","/website_analyzer.jpg","Unlock a world of knowledge at your fingertips with the Web Analyzer. Dive into relevant content tailored to your interests—be it science, technology, or any field you desire. Select articles that inspire curiosity, explore them with our interactive chat tool, and ask questions to enrich your learning experience. Whether you're seeking insights, deepening your understanding, or exploring new frontiers, the Web Analyzer empowers you to interact with information in a more engaging and meaningful way. Start your journey of discovery today!",status_button_2,'/home/dashboard/web-analyzer'],
-        [3,"Tools for image analysis","/image_analyzer.jpg","Unlock a world of discovery in science, technology, and entertainment. The Image Analyzer lets you explore content-rich visuals with precision. Search for images across these themes, delve into their details, and ask AI-powered questions about each result. But it doesn’t stop there—generate insightful metadata, and create descriptive summaries with cutting-edge computer vision. Let your curiosity lead the way and redefine how you interact with images!",status_button_3,'/home/dashboard/image-analyzer'],
-        [4,"Chat with documents","/chatbot.jpg","Description 4",status_button_4,'/home/dashboard'],
+        [2,"🌐 Explore new ways of interact with Online data!","/website_analyzer.jpg","Unlock a world of knowledge at your fingertips with the Web Analyzer. Dive into relevant content tailored to your interests—be it science, technology, or any field you desire. Select articles that inspire curiosity, explore them with our interactive chat tool, and ask questions to enrich your learning experience. Whether you're seeking insights, deepening your understanding, or exploring new frontiers, the Web Analyzer empowers you to interact with information in a more engaging and meaningful way. Start your journey of discovery today!",status_button_2,'/home/dashboard/web-analyzer'],
+        [3,"🖼️ Unleash the Power of Image Exploration!","/image_analyzer.jpg","Unlock a world of discovery in science, technology, and entertainment. The Image Analyzer lets you explore content-rich visuals with precision. Search for images across these themes, delve into their details, and ask AI-powered questions about each result. But it doesn’t stop there—generate insightful metadata, and create descriptive summaries with cutting-edge computer vision. Let your curiosity lead the way and redefine how you interact with images!",status_button_3,'/home/dashboard/image-analyzer'],
+        [4,"📄 Empower the Discovery in Documents!","/chatbot.jpg","Unlock the full potential of your documents with 📄 Document Analyzer, the ultimate tool in AI-BITS. Powered by Retrieval Augmented Generation (RAG) and advanced generative AI, this groundbreaking feature transforms the way you access, explore, and interact with information. The Document Analyzer doesn’t just retrieve information; it empowers you to uncover meaningful insights, making every interaction efficient and effortless.",status_button_4,'/home/dashboard/chat-with-your-docs'],
         
         
     ]
@@ -39,7 +39,7 @@ def create_service(data_cards:list[tuple]):
             rx.center(
                 rx.hstack(
                     
-                    rx.icon("school"),
+                    
                     rx.heading(
                         data_cards[1],
                         font_family="Console",

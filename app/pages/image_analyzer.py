@@ -458,6 +458,9 @@ def image_analyzer_page():
                             rx.list_item(rx.text("Interactive Image Selection:",weight="bold"),rx.text("A dynamic, interactive list of extracted images will appear. Browse through these images and select the ones that capture your attention or are relevant to your inquiry.")),
                             rx.list_item(rx.text("Ask Questions About the Images:",weight="bold"),rx.text("Once an image is selected, use the AI-driven interface to ask questions about it. The Image Analyzer will provide detailed insights, visual context, and descriptive summaries based on advanced computer vision.")),
                             rx.list_item(rx.text("Repeat for New Topics:",weight="bold"),rx.text("For each new topic or article, repeat the process—select the topic, upload the article, extract images, and explore. The system ensures seamless interaction, letting you dive deeper into each area of interest effortlessly.")),
+                            rx.list_item(rx.text("Inputs: ",weight="bold"),rx.text("For each new prompt or query, our system can process either a text input in the chat or an audio input through a microphone (just push the button and speak when it is in red)")),
+                            rx.list_item(rx.text("Outputs: ",weight="bold"),rx.text("Like in the case of the inputs, our system can give either a text output in the chat or an audio output through a speaker element (just push the button 'READ' and wait it is ready, but sometimes it can take a few minutes)")),
+                         
                             paddingX='2vw',
                             paddingY="1vh"
                             

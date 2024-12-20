@@ -226,7 +226,7 @@ def about_team():
             
             background_color="#bdbdbd",
             width="100%",
-            height='100%'
+            height='85vh'
             
         ),    
         
