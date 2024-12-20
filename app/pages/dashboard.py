@@ -9,7 +9,7 @@ class StateDashboard(rx.State):
     status_button_5:bool=True
     user:str=""
     data_cards:list[list]=[
-        [1,"Tools for video analysis","/video.jpg","Description 1",status_button_1,'/account/user/autoeval-platform/generator'],
+        [1,"Tools for video analysis","/video.jpg","Description 1",status_button_1,'/home/dashboard/video-analyzer'],
         [2,"Tools for webpage analysis","/website_analyzer.jpg","Unlock a world of knowledge at your fingertips with the Web Analyzer. Dive into relevant content tailored to your interests—be it science, technology, or any field you desire. Select articles that inspire curiosity, explore them with our interactive chat tool, and ask questions to enrich your learning experience. Whether you're seeking insights, deepening your understanding, or exploring new frontiers, the Web Analyzer empowers you to interact with information in a more engaging and meaningful way. Start your journey of discovery today!",status_button_2,'/home/dashboard/web-analyzer'],
         [3,"Tools for image analysis","/image_analyzer.jpg","Unlock a world of discovery in science, technology, and entertainment. The Image Analyzer lets you explore content-rich visuals with precision. Search for images across these themes, delve into their details, and ask AI-powered questions about each result. But it doesn’t stop there—generate insightful metadata, and create descriptive summaries with cutting-edge computer vision. Let your curiosity lead the way and redefine how you interact with images!",status_button_3,'/home/dashboard/image-analyzer'],
         [4,"Chat with documents","/chatbot.jpg","Description 4",status_button_4,'/home/dashboard'],
@@ -103,26 +103,26 @@ def aplications_dashboard():
             rx.hstack(
                 rx.image(
                     
-                    src="https://upload.wikimedia.org/wikipedia/commons/1/1f/Ucatolica2.jpg",  # URL de la imagen
+                    src="/logo.png",  # URL de la imagen
                     alt="Descripción de la imagen",
-                    width="10vw",  # Ancho de la imagen
+                    width="8vw",  # Ancho de la imagen
                     height="auto",   # Altura ajustada automáticamente
                     
                 ),
                 rx.heading(
-                    'NOMBRE DEL PROYECTO IMAGINEPROJECT',
+                    'AI-BITS',
                                         
-                    weight="medium",
+                    weight="bold",
                     high_contrast=True,
                     font_family="Times New Roman",
-                    font_size="31px",
+                    font_size="50px",
                     padding_left="5vw",
                     margin_top="2.5vh"
                    
                 ),     
                
                 
-                padding_left="15vw",
+                padding_left="25vw",
                 padding_right="5vw"
                 
                
@@ -141,7 +141,7 @@ def aplications_dashboard():
                 
                 ),
                 rx.heading(
-                    "INNOVATION CHALLENGE",
+                    "INNOVATION CHALLENGE DICEMBER",
                     color_scheme="indigo",
                     weight="bold",
                     font_family="Times New Roman",

@@ -11,26 +11,26 @@ def home() -> rx.Component:
             rx.hstack(
                 rx.image(
                     
-                    src="https://upload.wikimedia.org/wikipedia/commons/1/1f/Ucatolica2.jpg",  # URL de la imagen
+                    src="/logo.png",  # URL de la imagen
                     alt="Descripción de la imagen",
-                    width="10vw",  # Ancho de la imagen
+                    width="8vw",  # Ancho de la imagen
                     height="auto",   # Altura ajustada automáticamente
                     
                 ),
                 rx.heading(
-                    'NOMBRE DEL PROYECTO IMAGINEPROJECT',
+                    'AI-BITS',
                                         
-                    weight="medium",
+                    weight="bold",
                     high_contrast=True,
                     font_family="Times New Roman",
-                    font_size="31px",
+                    font_size="50px",
                     padding_left="5vw",
                     margin_top="2.5vh"
                    
-                ),     
+                ),    
                
                 
-                padding_left="15vw",
+                padding_left="25vw",
                 padding_right="5vw"
                 
                
@@ -174,7 +174,7 @@ def home() -> rx.Component:
             
             rx.box(
                 rx.image(
-                    src="/phrase.png",  # Ruta de la imagen
+                    src="/project_1.png",  # Ruta de la imagen
                     alt="Descripción de la imagen",
                     width="100%",  # Ancho de la imagen
                     height="50vh",   # Altura ajustada automáticamente

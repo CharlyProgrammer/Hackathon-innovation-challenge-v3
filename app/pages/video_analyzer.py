@@ -273,7 +273,7 @@ def action_bar() -> rx.Component:
 
 
         
-def web_analyzer_page():
+def video_analyzer_page():
      return rx.box(
         rx.hstack(
             rx.hstack(

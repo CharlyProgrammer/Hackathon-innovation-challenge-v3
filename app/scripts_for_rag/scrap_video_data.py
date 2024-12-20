@@ -3,16 +3,22 @@ from selenium.webdriver.firefox.service import Service
 from selenium.webdriver.common.by import By
 from selenium.webdriver.firefox.options import Options
 from azure.cognitiveservices.speech import SpeechConfig, SpeechRecognizer, AudioConfig
-import requests
+import azure.cognitiveservices.speech as speechsdk
+from pytube import YouTube
+from moviepy.audio.io import AudioFileClip
 import time
+import os
+from dotenv import load_dotenv
+load_dotenv(dotenv_path=os.path.dirname(os.getcwd())+'/innovation_challenge_v3/app/scripts_for_rag/.env')
 class extract_video_data:
-    def __init__(self):
+    def __init__(self,key_speech_resource,region_speech_resource):
         self.driver_path="D:\proyectos de lenguajes de programacion\python\drivers/geckodriver.exe"
         self.options = Options()
         self.options.add_argument("--headless") 
         self.driver=Service(self.driver_path)
         self.web_service=webdriver.Firefox(service=self.driver,options=self.options)
-        
+        self.key_speech_resource=key_speech_resource
+        self.region_speech_resource=region_speech_resource
     
         
     def get_video_search(self,topic:str):
@@ -32,25 +38,11 @@ class extract_video_data:
         
         return results
     
-    def transcribe_from_url(api_key, region, audio_url):
-        speech_config = SpeechConfig(subscription=api_key, region=region)
-        audio_config = AudioConfig(filename=audio_url)
-        
-        recognizer = SpeechRecognizer(speech_config=speech_config, audio_config=audio_config)
-        
-        try:
-            result = recognizer.recognize_once()
-            if result.reason == speechsdk.ResultReason.RecognizedSpeech:
-                return result.text
-            else:
-                print("No se pudo reconocer el discurso.")
-                return None
-        except Exception as e:
-            print(f"Error: {str(e)}")
-            return None
-obj=extract_video_data()        
-data= obj.get_video_search("azure ai search")
-print(len(data))        
+    
+  
+obj=extract_video_data(key_speech_resource="SPEECH_KEY",region_speech_resource="SPEECH_REGION")        
+data= obj.get_video_search("roman empire")
+print(data[0]["url"])        
         
 
     

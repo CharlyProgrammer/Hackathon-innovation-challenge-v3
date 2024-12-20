@@ -4,6 +4,7 @@ from app.styles import style_copilot
 from app.scripts_for_rag.calls_models import model_completion
 from app.scripts_for_rag.call_voice_models import voice_manager
 import time
+import os
 class StateImgAnalyzer(rx.State):
     
     img: str=""
@@ -17,11 +18,13 @@ class StateImgAnalyzer(rx.State):
     image_selector: str = ""
     article_selector:str=""
     chat_field: str=""
+    show_audio: bool=False
     show_image:bool=False
     show_title: bool=False
     send_read_status: bool=False
     send_chat_status:bool=False
     message_status: bool=False
+    voice_status: bool=False
     audio_loading_state: bool=False
     loading_state: bool=False
     articles_urls:list[str]=[]
@@ -37,6 +40,7 @@ class StateImgAnalyzer(rx.State):
         self.send_chat_status=True
         self.send_read_status=True
         self.show_image=True
+        self.show_audio=False
         for idx,image in enumerate(self.images_article):
             if self.image_selector==image:
                 self.img=self.images_urls[idx]
@@ -45,19 +49,64 @@ class StateImgAnalyzer(rx.State):
         self.chat_field=value    
     def init_loading(self):
          self.loading_state=True
-         
+    
+    def change_mic_status(self):
+        self.voice_status=True        
     def init_audio_loading(self):
+        self.show_audio=False
         self.audio_loading_state=True
     
     def save_chat(self):
-        
-        answer=run_conversation(self.chat_field,self.img)
-        self.response=answer
-        self.loading_state=False
-        self.historial.append((self.chat_field,answer))
-        self.chat_field=""     
+        try:
+            answer=run_conversation(self.chat_field,self.img)
+            self.response=answer
+            self.loading_state=False
+            self.historial.append((self.chat_field,answer))
+            self.chat_field=""
+            self.show_audio=False
+        except Exception:
+            answer="The topic of the selected article violates the principles of Reliability and safety of Responsible AI"         
+            self.response=answer
+            self.loading_state=False
+            self.historial.append((self.chat_field,answer))
+            self.chat_field=""
+            self.show_audio=False
     
+    def save_voice(self):
+        
+                    
+        voice_obj=voice_manager(key_speech_resource="SPEECH_KEY",region_speech_resource="SPEECH_REGION")
+        client=voice_obj.init_voice_recognition()
+        voice=voice_obj.convert_voice_text(speech_recognizer=client)
+        if voice!="":
+            try:
+                answer=run_conversation(voice,self.img)
+                self.response=answer
+                self.historial.append((voice,answer))
+                self.chat_field=""
+                self.show_audio=False
+                self.voice_status=False
+            except Exception:
+                answer="The topic of the selected article violates the principles of Reliability and safety of Responsible AI"
+                self.response=answer
+                self.loading_state=False
+                self.historial.append((voice,answer))
+                self.chat_field=""
+                self.show_audio=False
+                self.voice_status=False    
+        else:
+            voice="<!> Voice could't be detected, try again "
+            self.response=answer
+            self.historial.append((voice,""))
+            self.chat_field=""
+            self.show_audio=False
+            self.voice_status=False
+                            
+            
     def send_text_read(self):
+        if os.path.isfile("./uploaded_files/response.mp3"):
+        
+            os.remove("./uploaded_files/response.mp3") 
         name="response.mp3"
         out_path=rx.get_upload_dir()/name
         voice_obj=voice_manager(key_speech_resource="SPEECH_KEY",region_speech_resource="SPEECH_REGION")
@@ -65,6 +114,7 @@ class StateImgAnalyzer(rx.State):
         voice_obj.convert_text_voice(text=self.response,synthesizer=client,output_file=out_path)
         time.sleep(5)
         self.audio_loading_state=False
+        self.show_audio=True
             
     def update_selector_article(self,value:str):
         self.article_selector=value
@@ -108,6 +158,7 @@ class StateImgAnalyzer(rx.State):
             self.message_text=""
             self.send_chat_status=False
             self.send_read_status=False
+            self.show_audio=False
         else:
             self.image_selector=""
             self.article_selector=""
@@ -119,17 +170,7 @@ class StateImgAnalyzer(rx.State):
             self.message_status=True
             self.send_chat_status=False
             self.send_read_status=False                   
-    def load_bloqs(self,path):
-        try:
-            with open(path,'r',encoding="utf-8") as file:
-                text=file.read().split('\n')
-                
-                self.text_bloq1=text[0]
-                self.text_bloq2=text[1]
-                
-        except FileNotFoundError:
-            self.text_bloq1 = "La información no fue encontrada."
-            self.text_bloq2 = "La información no fue encontrada."
+    
     
     def back_action(self):
         self.image_selector=""
@@ -145,12 +186,16 @@ class StateImgAnalyzer(rx.State):
         self.show_image=False
         self.send_chat_status=False
         self.send_read_status=False
+        self.show_audio=False
+        if os.path.isfile("./uploaded_files/response.mp3"):
+        
+            os.remove("./uploaded_files/response.mp3")
         return rx.redirect("/home/dashboard")
 
 def run_conversation(user_prompt,img_url):
     #obj_llm_completion=model_completion("LLAMA_KEY","LLAMA_MODEL","OPENAI_KEY","OPENAI_MODEL","OPENAI_ENDPOINT")
-    refs=""
-    obj_llm_completion=model_completion(model_version_llama="LLAMA_MODEL_VISION",key_model_llama="LLAMA_KEY")
+    
+    obj_llm_completion=model_completion(key_model_oa="OPENAI_KEY",endpoint_oa="OPENAI_ENDPOINT",model_version_oa="OPENAI_MODEL_VISION")
     messages=[{
                 "role": "user",
                 "content": [
@@ -166,11 +211,11 @@ def run_conversation(user_prompt,img_url):
                     }
                 ]
             }]
-    client=obj_llm_completion.init_llama_model(temperature=0.8,max_tokens=800)
-    response=obj_llm_completion.generate_response_llama(client=client,messages=messages)
+    client=obj_llm_completion.init_model_openai()
+    response=obj_llm_completion.generate_response_openai(client=client,messages=messages,temperature=0.8,max_tokens=800)
     #client=obj_llm_completion.init_model_openai()
     #response=obj_llm_completion.generate_response_openai(client=client,prompt=user_prompt,temperature=0.7)
-    return response+f"{refs}"
+    return response
 
 def qa(question: str, answer: str) -> rx.Component:
     return rx.box(
@@ -216,20 +261,43 @@ def action_bar() -> rx.Component:
             loading=StateImgAnalyzer.loading_state,
             display=rx.cond(StateImgAnalyzer.send_chat_status,"block","none")
         ),
-         rx.button(
+        rx.button(
+            rx.icon("mic"),
+            background_color=rx.cond(StateImgAnalyzer.voice_status,"red","blue"),
+            on_click=lambda:[StateImgAnalyzer.change_mic_status,StateImgAnalyzer.save_voice],
+            style=style_copilot.button_style,
+            height="4vh",
+            cursor="pointer",
+            _hover={
+                "color": "#FFD700"  # Cambia el color del texto al pasar el cursor
+            },
+            
+            display=rx.cond(StateImgAnalyzer.send_chat_status,"block","none")
+        ),
+        rx.button(
             "Read",
             on_click=lambda:[StateImgAnalyzer.init_audio_loading,StateImgAnalyzer.send_text_read],
             style=style_copilot.button_style,
+            cursor="pointer",
+            _hover={
+                "color": "#FFD700"  # Cambia el color del texto al pasar el cursor
+            },
             height="4vh",
             loading=StateImgAnalyzer.audio_loading_state,
             display=rx.cond(StateImgAnalyzer.send_read_status,"block","none")
         ),
-        rx.audio(
-            url=rx.get_upload_url("response.mp3"),
-            width="400px",
-            height="32px",
+        rx.box(
+            rx.cond(
+                StateImgAnalyzer.show_audio,
+                rx.audio(
+                    url=rx.get_upload_url("response.mp3"),
+                    width="400px",
+                    height="32px",
            
-            
+
+                ),
+                rx.box()
+            )
         )
     )
 
@@ -244,26 +312,26 @@ def image_analyzer_page():
             rx.hstack(
                 rx.image(
                     
-                    src="https://upload.wikimedia.org/wikipedia/commons/1/1f/Ucatolica2.jpg",  # URL de la imagen
+                    src="/logo.png",  # URL de la imagen
                     alt="Descripción de la imagen",
-                    width="10vw",  # Ancho de la imagen
+                    width="8vw",  # Ancho de la imagen
                     height="auto",   # Altura ajustada automáticamente
                     
                 ),
                 rx.heading(
-                    'NOMBRE DEL PROYECTO IMAGINEPROJECT',
+                    'AI-BITS',
                                         
-                    weight="medium",
+                    weight="bold",
                     high_contrast=True,
                     font_family="Times New Roman",
-                    font_size="31px",
+                    font_size="50px",
                     padding_left="5vw",
                     margin_top="2.5vh"
                    
                 ),     
                
                 
-                padding_left="15vw",
+                padding_left="25vw",
                 padding_right="5vw"
                 
                
@@ -282,7 +350,7 @@ def image_analyzer_page():
                 
                 ),
                 rx.heading(
-                    "INNOVATION CHALLENGE",
+                    "INNOVATION CHALLENGE DICEMBER",
                     color_scheme="indigo",
                     weight="bold",
                     font_family="Times New Roman",

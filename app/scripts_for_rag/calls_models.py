@@ -61,8 +61,7 @@ class model_completion:
     
     
     def generate_response_openai(self,client,messages,temperature,max_tokens):
-        #self.openai_model = os.getenv(self.model_version_oa)
-        print(self.openai_model)
+       
         response = client.chat.completions.create(  
 
                     model=self.openai_model,  
@@ -78,3 +77,4 @@ class model_completion:
                 
 
         return response.choices[0].message.content
+    
