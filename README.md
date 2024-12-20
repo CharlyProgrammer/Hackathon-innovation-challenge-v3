@@ -1,4 +1,4 @@
-# Hackathon-innovation-challenge-v3 (Dicember 2024)
+# Hackathon-innovation-challenge-v3 (December 2024)
 <img src="https://github.com/CharlyProgrammer/Hackathon-innovation-challenge-v3/blob/main/assets/logo.png" width ="80%">
 
 ### 👨🏻‍💻 &nbsp; About the project
