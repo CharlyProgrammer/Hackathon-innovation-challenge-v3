@@ -39,3 +39,5 @@ This guiding principle drives AI-Bits to be a game-changer in online information
 
 ### 📽️ &nbsp;  Presentation
 
+https://drive.google.com/file/d/14jMJztmt7GhK9oICgHXzOMUL38TIO2cO/view
+
