@@ -56,7 +56,7 @@ class StateDocsAnalyzer(rx.State):
         voice=voice_obj.convert_voice_text(speech_recognizer=client)
         if voice!="":
             try:
-                answer=run_conversation(voice,self.article_text)
+                answer=run_conversation(voice)
                 self.response=answer
                 self.historial.append((voice,answer))
                 self.chat_field=""
